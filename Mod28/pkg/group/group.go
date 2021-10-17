@@ -3,7 +3,7 @@ package group
 import (
 	"fmt"
 	"io"
-	student "sandbox/Mod28/pkg/Student"
+	student "sandbox/Mod28/pkg/student"
 )
 
 type Group map[string]*student.Student

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	group "sandbox/Mod28/pkg/Group"
+	group "sandbox/Mod28/pkg/group"
 )
 
 func main() {
