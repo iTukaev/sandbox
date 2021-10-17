@@ -1,13 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"io"
-	"os"
-	"strconv"
-	"strings"
+	"visibility/input"
 )
 
 type Student struct {
@@ -29,32 +26,12 @@ func NewStudent(name string, age int, grade int) *Student {
 	return &s
 }
 
-func consoleInput() (name string, age int, grade int, err error) {
-	sc := bufio.NewScanner(os.Stdin)
-Beginning:
-	if sc.Scan() {
-		txt := sc.Text()
-		words := strings.Fields(txt)
-		if len(words) == 3 {
-			name = words[0]
-			age, _ = strconv.Atoi(words[1])
-			grade, _ = strconv.Atoi(words[2])
-		} else {
-			fmt.Println("Input error, repeat")
-			goto Beginning
-		}
-	} else {
-		err = io.EOF
-	}
-	return
-}
-
 func addStudentsToGroup(g *Group) {
 	var s Student
 	g.StudentsByName = make(map[string]Student)
 
 	for {
-		if name, age, grade, err := consoleInput(); err == io.EOF {
+		if name, age, grade, err := input.ConsoleInput(); err == io.EOF {
 			return
 		} else {
 			s = *NewStudent(name, age, grade)
