@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func WaitNum() (chan int, error) {
+func NumInsert() (chan int, error) {
 	firstStepChan := make(chan int)
 Begin:
 	fmt.Print("Ввод: ")
@@ -29,15 +29,15 @@ Begin:
 func Quad(firstStepChan chan int) chan int{
 	secondStepChan := make(chan int)
 	num := int(math.Pow(float64(<-firstStepChan), 2.0))
+	fmt.Println("Квадрат:", num)
+
 	go func() {
-		secondStepChan <- num
 		secondStepChan <- num
 	}()
 	return secondStepChan
 }
 
 func Multiplication(secondStepChan chan int) chan int{
-	fmt.Println("Квадрат:", <- secondStepChan)
 
 	thirdStepChan := make(chan int)
 	num := (<-secondStepChan)*2
