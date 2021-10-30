@@ -1,11 +1,11 @@
 package entity
 
-type Department struct {
-	Users map[int]*User
+import "go.mongodb.org/mongo-driver/mongo"
+
+type MongoClient struct {
+	Client *mongo.Client
 }
 
-func NewDepartment() *Department {
-	dep := new(Department)
-	dep.Users = make(map[int]*User)
-	return dep
+func NewClient() *MongoClient {
+	return new(MongoClient)
 }

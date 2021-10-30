@@ -1,9 +1,10 @@
 package entity
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type User struct {
-	Id int `json:"id"`
 	Name string `json:"name"`
 	Age int `json:"age"`
 	Friends []int `json:"friends"`

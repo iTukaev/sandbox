@@ -5,20 +5,25 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"sandbox/Mod31/pkg/entity"
 )
-var Client *mongo.Client
 
-func MongoDbStart() {
-	Client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://127.0.0.1:27017"))
+func MongoDbStart() (*entity.MongoClient, error) {
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://127.0.0.1:27017"))
 	if err != nil {
 		log.Fatalln(err)
+		return nil, err
 	}
-	if err := Client.Connect(context.TODO()); err != nil {
+	if err := client.Connect(context.TODO()); err != nil {
 		log.Fatalln(err)
+		return nil, err
 	}
-	if err := Client.Ping(context.TODO(), nil); err != nil {
+	if err := client.Ping(context.TODO(), nil); err != nil {
 		log.Fatalln(err)
+		return nil, err
 	}
-
+	cl := entity.NewClient()
+	cl.Client = client
 	log.Println("MongoDB started")
+	return cl, err
 }

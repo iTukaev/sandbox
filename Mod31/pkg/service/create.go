@@ -3,28 +3,24 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"sandbox/Mod31/pkg/db"
 	"sandbox/Mod31/pkg/entity"
-	"strconv"
 )
 
-type CreateUser struct {
-	department *entity.Department
+type MongoClient struct {
+	Client *entity.MongoClient
 }
 
-func NewCreateUser(department *entity.Department) *CreateUser {
-	return &CreateUser{
-		department: department,
+func NewMongoClient(client *entity.MongoClient) *MongoClient {
+	return &MongoClient{
+		Client: client,
 	}
 }
 
-func (d *CreateUser) Create(w http.ResponseWriter, r *http.Request) {
+func (cl *MongoClient) Create(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		content, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -41,28 +37,16 @@ func (d *CreateUser) Create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		collection := db.Client.Database("mod31").Collection("users")
+		collection := cl.Client.Client.Database("mod31").Collection("users")
 
-		u.Id = lastUserId(collection) + 1
-
-		_, err = collection.InsertOne(context.TODO(), u)
+		res, err := collection.InsertOne(context.TODO(), u)
 		if err != nil {
 			log.Fatalln(err)
 		}
+		id := res.InsertedID.(primitive.ObjectID).Hex()
 
-		w.Write([]byte("User ID: " + strconv.Itoa(u.Id) + " name: " + u.Name + " was created"))
+		w.Write([]byte("User ID: " + id + ", name: " + u.Name + " was created"))
 		return
 	}
 	w.WriteHeader(http.StatusBadRequest)
-}
-
-func lastUserId(c *mongo.Collection) int {
-	var u *entity.User
-	opts := options.FindOne().SetMax(bson.D{{"id", 1}})
-	res := c.FindOne(context.TODO(), bson.D{{"id",1}}, opts)
-	if err := res.Decode(u); err != nil {
-		log.Fatalln(err)
-	}
-
-	return u.Id
 }

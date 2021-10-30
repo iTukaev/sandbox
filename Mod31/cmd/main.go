@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"sandbox/Mod31/pkg/db"
 	"sandbox/Mod31/pkg/httprouter"
 	"syscall"
 )
@@ -13,9 +12,9 @@ import (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	HandleSignals(cancel)
-	db.MongoDbStart()
 
-	httprouter.StartHttpServer(ctx, db.Client)
+
+	httprouter.StartHttpServer(ctx)
 
 	log.Println("All services stopped. Goodbye!")
 }
