@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"sandbox/Mod31/pkg/entity"
 )
@@ -41,7 +40,9 @@ func (cl *MongoClient) Create(w http.ResponseWriter, r *http.Request) {
 
 		res, err := collection.InsertOne(context.TODO(), u)
 		if err != nil {
-			log.Fatalln(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("user isn't created"))
+			return
 		}
 		id := res.InsertedID.(primitive.ObjectID).Hex()
 

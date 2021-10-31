@@ -27,10 +27,10 @@ func StartHttpServer(ctx context.Context) {
 
 	r.Post("/create", dbHandler.Create)
 	//r.Post("/make_friends", dbHandler.MakeFriend)
-	//r.Delete("/user", dbHandler.DeleteUser)
+	r.Delete("/user", dbHandler.DeleteUser)
 	//r.Get("/friends/{userId}", dbHandler.Friends)
-	//r.Put("/{userId}", dbHandler.AgeUpdate)
-	//r.Get("/get", dbHandler.GetAllUsers)
+	r.Put("/{userId}", dbHandler.AgeUpdate)
+	r.Get("/get", dbHandler.GetAllUsers)
 
 	go func() {
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
