@@ -24,31 +24,8 @@ func main() {
 	}
 }
 
-func dirTree(in io.Writer, path string, printFiles bool) error { //
-	files, err := ioutil.ReadDir(path)
-	if err != nil {
-		return nil
-	}
-	if !printFiles {
-		files = dirList(&files)
-	}
-	for num, name := range files {
-		subPrefix := ""
-		if printFiles || name.IsDir() {
-			if num != len(files)-1 {
-				fmt.Fprintln(in, "├───" + name.Name() + postName(name))
-				subPrefix += "│\t"
-			} else {
-				fmt.Fprintln(in, "└───" + name.Name() + postName(name))
-				subPrefix += "\t"
-			}
-			err := subDirTree(in, path+string(os.PathSeparator)+name.Name(), subPrefix, printFiles)
-			if err != nil {
-				return nil
-			}
-		}
-	}
-	return nil
+func dirTree(in io.Writer, path string, printFiles bool) error {
+	return subDirTree(in, path, "", printFiles)
 }
 
 func subDirTree (in io.Writer, path string, prefix string, printFiles bool) error {
@@ -57,16 +34,16 @@ func subDirTree (in io.Writer, path string, prefix string, printFiles bool) erro
 		return nil
 	}
 	if !printFiles {
-		files = dirList(&files)
+		files = dirList(files)
 	}
 	for num, name := range files {
 		subPrefix := prefix
 		if printFiles || name.IsDir() {
 			if num != len(files)-1 {
-				fmt.Fprintln(in, subPrefix + "├───" + name.Name() + postName(name))
+				fmt.Fprintln(in, subPrefix + "├───" + name.Name() + postName(&name))
 				subPrefix += "│\t"
 			} else {
-				fmt.Fprintln(in, subPrefix + "└───" + name.Name() + postName(name))
+				fmt.Fprintln(in, subPrefix + "└───" + name.Name() + postName(&name))
 				subPrefix += "\t"
 			}
 			err := subDirTree(in, path+string(os.PathSeparator)+name.Name(), subPrefix, printFiles)
@@ -78,10 +55,10 @@ func subDirTree (in io.Writer, path string, prefix string, printFiles bool) erro
 	return nil
 }
 
-func postName(name fs.FileInfo) string {
-	if !name.IsDir() {
-		if name.Size() > 0 {
-			return " (" + strconv.Itoa(int(name.Size())) + "b)"
+func postName(name *fs.FileInfo) string {
+	if !(*name).IsDir() {
+		if (*name).Size() > 0 {
+			return " (" + strconv.FormatInt((*name).Size(), 10) + "b)"
 		} else {
 			return " (empty)"
 		}
@@ -89,9 +66,9 @@ func postName(name fs.FileInfo) string {
 	return ""
 }
 
-func dirList(files *[]fs.FileInfo) []fs.FileInfo {
+func dirList(files []fs.FileInfo) []fs.FileInfo {
 	dirs := make([]fs.FileInfo, 0)
-	for _, file := range *files {
+	for _, file := range files {
 		if file.IsDir() {
 			dirs = append(dirs, file)
 		}
