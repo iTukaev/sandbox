@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"sandbox/Mod30/pkg/entity"
-	"sandbox/Mod30/pkg/service"
+	"sandbox/Mod30/pkg/groupServise"
+	"sandbox/Mod30/pkg/handlers/create"
 	"syscall"
 )
 
@@ -25,18 +25,19 @@ func StartHttpServer(ctx context.Context) {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
-	dpt := entity.NewDepartment()
-	createUser := service.NewCreateUser(dpt)
+	//group := groupServise.NewService()
+	var h create.Handle
+	h.GroupService = groupServise.NewService()
 
 	srv := &http.Server{Addr: "localhost:8000", Handler: r}
 	log.Println("server started")
 
-	r.Post("/create", createUser.Create)
-	r.Post("/make_friends", createUser.MakeFriend)
-	r.Delete("/user", createUser.DeleteUser)
-	r.Get("/friends/{userId}", createUser.Friends)
-	r.Put("/{userId}", createUser.AgeUpdate)
-	r.Get("/get", createUser.GetAllUsers)
+	r.Post("/create", h.Create)
+	r.Post("/make_friends", h.)
+	//r.Delete("/user", createUser.DeleteUser)
+	//r.Get("/friends/{userId}", createUser.Friends)
+	//r.Put("/{userId}", createUser.AgeUpdate)
+	//r.Get("/get", createUser.GetAllUsers)
 
 	go func() {
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {

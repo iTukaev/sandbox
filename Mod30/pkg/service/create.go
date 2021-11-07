@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sandbox/Mod30/pkg/entity"
+	"sandbox/Mod30/pkg/groupServise"
 	"strconv"
 )
 
@@ -28,7 +29,7 @@ func (d *CreateUser) Create(w http.ResponseWriter, r *http.Request) {
 		}
 		defer r.Body.Close()
 
-		u := entity.NewUser()
+		u := groupServise.NewUser()
 		if err := json.Unmarshal(content, u); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
