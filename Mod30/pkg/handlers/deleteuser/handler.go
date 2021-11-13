@@ -1,4 +1,4 @@
-package create
+package deleteuser
 
 import (
 	"encoding/json"
@@ -8,15 +8,14 @@ import (
 )
 
 type Input struct {
-	Name string `json:"name"`
-	Age  int    `json:"age"`
+	TargetID int `json:"target_id"`
 }
 
-func NewHandler(service groupInterface) func(w http.ResponseWriter, r *http.Request) {
-	handler := &Handle {
+func NewHandler(service groupInterface) func(w http.ResponseWriter, r *http.Request)  {
+	handle := &Handle{
 		groupService: service,
 	}
-	return handler.Create
+	return handle.Delete
 }
 
 type Handle struct {
@@ -24,15 +23,16 @@ type Handle struct {
 }
 
 type groupInterface interface {
-	CreateUser(name string, age int) (string, error)
+	DeleteUser(ID int) (string, error)
 }
 
-func (h *Handle) Create(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+func (h *Handle) Delete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("incorrect method"))
 		return
 	}
+
 	content, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -45,19 +45,20 @@ func (h *Handle) Create(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	inputPayload := &Input{}
-	if err := json.Unmarshal(content, inputPayload); err != nil {
+	f := &Input{}
+	if err := json.Unmarshal(content, f); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	result, err := h.groupService.CreateUser(inputPayload.Name, inputPayload.Age)
+	result, err := h.groupService.DeleteUser(f.TargetID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
+
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(result))
 }

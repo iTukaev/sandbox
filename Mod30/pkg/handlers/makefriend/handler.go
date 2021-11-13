@@ -11,8 +11,15 @@ type AddFriend struct {
 	TargetID int `json:"target_id"`
 }
 
+func NewHandler(service groupInterface) func(w http.ResponseWriter, r *http.Request) {
+	handler := &Handle {
+		groupService: service,
+	}
+	return handler.MakeFriend
+}
+
 type Handle struct {
-	GroupService groupInterface
+	groupService groupInterface
 }
 
 type groupInterface interface {
@@ -20,32 +27,34 @@ type groupInterface interface {
 }
 
 func (h *Handle) MakeFriend(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		content, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
-		defer r.Body.Close()
-
-		f := &AddFriend{}
-		if err := json.Unmarshal(content, f); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
-
-		responseBody, err := h.GroupService.MakeFriend(f.TargetID, f.SourceID)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(responseBody))
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("incorrect method"))
 		return
 	}
-	w.WriteHeader(http.StatusBadRequest)
+	content, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	defer r.Body.Close()
+
+	f := &AddFriend{}
+	if err := json.Unmarshal(content, f); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	responseBody, err := h.groupService.MakeFriend(f.TargetID, f.SourceID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(responseBody))
+	return
 }
