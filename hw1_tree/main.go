@@ -40,10 +40,10 @@ func subDirTree (in io.Writer, path string, prefix string, printFiles bool) erro
 		subPrefix := prefix
 		if printFiles || name.IsDir() {
 			if num != len(files)-1 {
-				fmt.Fprintln(in, subPrefix + "├───" + name.Name() + postName(&name))
+				fmt.Fprintln(in, subPrefix + "├───" + name.Name() + postName(name))
 				subPrefix += "│\t"
 			} else {
-				fmt.Fprintln(in, subPrefix + "└───" + name.Name() + postName(&name))
+				fmt.Fprintln(in, subPrefix + "└───" + name.Name() + postName(name))
 				subPrefix += "\t"
 			}
 			err := subDirTree(in, path+string(os.PathSeparator)+name.Name(), subPrefix, printFiles)
@@ -55,10 +55,10 @@ func subDirTree (in io.Writer, path string, prefix string, printFiles bool) erro
 	return nil
 }
 
-func postName(name *fs.FileInfo) string {
-	if !(*name).IsDir() {
-		if (*name).Size() > 0 {
-			return " (" + strconv.FormatInt((*name).Size(), 10) + "b)"
+func postName(name fs.FileInfo) string {
+	if !name.IsDir() {
+		if name.Size() > 0 {
+			return " (" + strconv.FormatInt(name.Size(), 10) + "b)"
 		} else {
 			return " (empty)"
 		}
