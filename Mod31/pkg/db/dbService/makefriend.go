@@ -1,35 +1,41 @@
-package groupServise
+package dbService
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (s *service) MakeFriend(TargetID int, SourceID int) (string, error) {
-	if _, ok := s.Users[TargetID]; !ok {
-		return "", errors.New("target user not found")
-	}
-
-	if _, ok := s.Users[SourceID]; !ok {
-		return "", errors.New("source user not found")
-	}
-
-	if err := findFriendInFriends(&s.Users[TargetID].Friends, SourceID); err != nil {
+func (s *service) MakeFriend(targetID string, sourceID string) (string, error) {
+	objID, err := primitive.ObjectIDFromHex(targetID)
+	if err != nil {
 		return "", err
 	}
 
-	s.Users[TargetID].Friends = append(s.Users[TargetID].Friends, SourceID)
-	result := fmt.Sprintf("User ID: %d added to friend's list to user ID: %d", SourceID, TargetID)
+	var u User
+	filter := bson.D{{"_id", objID}}
+	opts := options.FindOne()
+	if err = s.coll.FindOne(context.TODO(), filter, opts).Decode(&u); err != nil {
+		return "", err
+	}
+	if err = findFriendInFriends(u.Friends, sourceID); err != nil {
+		return "", err
+	}
+	optsUpdate := options.FindOneAndUpdate().SetUpsert(false)
+	update := bson.D{{"$set", bson.D{{"friends", sourceID}}}}
+	s.coll.FindOneAndUpdate(context.TODO(), filter, update, optsUpdate)
+	result := fmt.Sprintf("User ID: %s and user ID: %s already friends", targetID, sourceID)
 	return result, nil
 }
 
-func findFriendInFriends(s *[]int, num int) error {
-	var err error = nil
-
-	for _, val := range *s {
-		if val == num {
+func findFriendInFriends(s []string, sourceID string) error {
+	for _, val := range s {
+		if val == sourceID {
 			return errors.New("these users are already friends")
 		}
 	}
-	return err
+	return nil
 }

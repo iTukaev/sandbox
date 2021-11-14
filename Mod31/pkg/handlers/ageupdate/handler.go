@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 )
 
 type Input struct {
@@ -24,7 +23,7 @@ type Handle struct {
 }
 
 type groupInterface interface {
-	AgeUpdate(ID int, age int) (string, error)
+	AgeUpdate(ID string, age int) (string, error)
 }
 
 func (h *Handle) AgeUpdate(w http.ResponseWriter, r *http.Request) {
@@ -34,13 +33,7 @@ func (h *Handle) AgeUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	param := chi.URLParam(r, "userId")
-	userID, err := strconv.Atoi(param)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
+	userID := chi.URLParam(r, "userId")
 
 	content, err := ioutil.ReadAll(r.Body)
 	if err != nil {

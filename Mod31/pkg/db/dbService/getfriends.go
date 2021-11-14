@@ -1,26 +1,26 @@
-package groupServise
+package dbService
 
 import (
-	"errors"
+	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (s *service) GetFriends(ID int) (string, error) {
-	if _, ok := s.Users[ID]; !ok {
-		return "", errors.New("user not found")
+func (s *service) GetFriends(ID string) (string, error) {
+	objID, err := primitive.ObjectIDFromHex(ID)
+	if err != nil {
+		return "", err
 	}
 
-	result := ""
+	var u User
+	filter := bson.D{{"_id", objID}}
+	opts := options.FindOne()
 
-	if len(s.Users[ID].Friends) == 0 {
-		result = fmt.Sprintf("User %s has not friends", s.Users[ID].Name)
-		return result, nil
+	if err = s.coll.FindOne(context.TODO(), filter, opts).Decode(&u); err != nil {
+		return "", err
 	}
-
-	result = fmt.Sprintf("Friends of user ID: %d -\n", ID)
-	for _, val := range s.Users[ID].Friends {
-		result += fmt.Sprintf("\tID: %d\n", val)
-	}
-
+	result := fmt.Sprintf("Friends of user ID: %s - %v", ID, u.Friends)
 	return result, nil
 }

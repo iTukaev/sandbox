@@ -1,31 +1,23 @@
-package groupServise
+package dbService
 
 import (
+	"context"
 	"fmt"
-	"sync"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (s *service) CreateUser(name string, age int) (string, error) {
-	mu := &sync.Mutex{}
-	ID := lastUserId(s, mu) + 1
-
-	s.Users[ID] = &User{
+	u := User{
 		Name: name,
 		Age: age,
 	}
 
-	result := fmt.Sprintf("User ID: %d, name: %s was created", ID, name)
-	return result, nil
-}
-
-func lastUserId(d *service, mu *sync.Mutex) int {
-	mu.Lock()
-	lastId := 0
-	for key,  _ := range d.Users {
-		if key > lastId {
-			lastId = key
-		}
+	res, err := s.coll.InsertOne(context.TODO(), u)
+	if err != nil {
+		return "", err
 	}
-	mu.Unlock()
-	return lastId
+	ID := res.InsertedID.(primitive.ObjectID).Hex()
+
+	result := fmt.Sprintf("User ID: %s, name: %s was created", ID, name)
+	return result, nil
 }

@@ -17,7 +17,7 @@ type Handle struct {
 }
 
 type groupInterface interface {
-	GetAll() *bytes.Buffer
+	GetAll() (*bytes.Buffer, error)
 }
 
 func (h *Handle) GetAll(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +27,12 @@ func (h *Handle) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	buf := h.groupService.GetAll()
+	buf, err := h.groupService.GetAll()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(buf.Bytes())
 }

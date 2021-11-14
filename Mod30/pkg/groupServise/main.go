@@ -17,10 +17,10 @@ type service struct {
 
 type Service interface {
 	CreateUser(name string, age int) (string, error)
-	DeleteUser(ID int) (string, error)
-	AgeUpdate(ID int, age int) (string, error)
-	GetFriends(ID int) (string, error)
-	MakeFriend(TargetID int, SourceID int) (string, error)
+	DeleteUser(ID string) (string, error)
+	AgeUpdate(ID string, age int) (string, error)
+	GetFriends(ID string) (string, error)
+	MakeFriend(TargetID string, SourceID string) (string, error)
 	GetAll() *bytes.Buffer
 }
 

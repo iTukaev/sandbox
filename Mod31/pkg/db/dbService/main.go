@@ -1,32 +1,34 @@
-package groupServise
+package dbService
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-//type User struct {
-//	Name string `json:"name"`
-//	Age int `json:"age"`
-//	Friends []int `json:"friends"`
-//}
+type User struct {
+	Name string `json:"name"`
+	Age int `json:"age"`
+	Friends []string `json:"friends"`
+}
 
 type service struct {
-	Users map[int]*User
+	coll *mongo.Collection
 }
 
 type Service interface {
 	CreateUser(name string, age int) (string, error)
-	DeleteUser(ID int) (string, error)
-	AgeUpdate(ID int, age int) (string, error)
-	GetFriends(ID int) (string, error)
-	MakeFriend(TargetID int, SourceID int) (string, error)
-	GetAll() *bytes.Buffer
+	DeleteUser(ID string) (string, error)
+	AgeUpdate(ID string, age int) (string, error)
+	GetFriends(ID string) (string, error)
+	MakeFriend(TargetID string, SourceID string) (string, error)
+	GetAll() (*bytes.Buffer, error)
 }
 
-func NewService() Service {
+func NewService(ctx context.Context) Service {
 	s := service{
-		make(map[int]*User),
+		coll: MongoDbCollection(ctx),
 	}
 	return &s
 }

@@ -2,13 +2,14 @@ package deleteuser
 
 import (
 	"encoding/json"
+	"go.mongodb.org/mongo-driver/mongo"
 	"io/ioutil"
 	"log"
 	"net/http"
 )
 
 type Input struct {
-	TargetID int `json:"target_id"`
+	TargetID string `json:"target_id"`
 }
 
 func NewHandler(service groupInterface) func(w http.ResponseWriter, r *http.Request)  {
@@ -23,7 +24,7 @@ type Handle struct {
 }
 
 type groupInterface interface {
-	DeleteUser(ID int) (string, error)
+	DeleteUser(ID string) (string, error)
 }
 
 func (h *Handle) Delete(w http.ResponseWriter, r *http.Request) {
@@ -53,6 +54,11 @@ func (h *Handle) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result, err := h.groupService.DeleteUser(f.TargetID)
+	if err == mongo.ErrNoDocuments {
+		w.WriteHeader(http.StatusNoContent)
+		w.Write([]byte(err.Error()))
+		return
+	}
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))

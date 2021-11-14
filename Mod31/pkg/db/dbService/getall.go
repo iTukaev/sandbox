@@ -1,18 +1,22 @@
-package groupServise
+package dbService
 
 import (
 	"bytes"
-	"log"
-	"strconv"
+	"context"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (s *service) GetAll() *bytes.Buffer {
+func (s *service) GetAll() (*bytes.Buffer, error) {
 	var buf bytes.Buffer
 
-	for key, val := range s.Users {
-		if _, err := buf.WriteString("User ID: " + strconv.Itoa(key) + "\t" + val.toString() + "\n"); err != nil {
-			log.Println(err)
-		}
+	documents, err := s.coll.Find(context.TODO(), bson.M{}, options.Find())
+	if err != nil {
+		return nil, err
 	}
-	return &buf
+
+	for documents.Next(context.TODO()) {
+		buf.WriteString(documents.Current.String() + "\n")
+	}
+	return &buf, nil
 }

@@ -1,18 +1,24 @@
-package groupServise
+package dbService
 
 import (
-	"errors"
+	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (s *service) DeleteUser(ID int) (string, error) {
-	if _, ok := s.Users[ID]; !ok {
-		return "", errors.New("user not found")
+func (s *service) DeleteUser(ID string) (string, error) {
+	objectId, err := primitive.ObjectIDFromHex(ID)
+	if err != nil{
+		return "", err
 	}
 
-	name := s.Users[ID].Name
-	delete(s.Users, ID)
+	err = s.coll.FindOneAndDelete(context.TODO(), bson.M{"_id": objectId}).Err()
+	if err == mongo.ErrNoDocuments {
+		return "", err
+	}
 
-	result := fmt.Sprintf("User ID: %d, name: %s was deleted", ID, name)
+	result := fmt.Sprintf("User ID: %s, was deleted", ID)
 	return result, nil
 }

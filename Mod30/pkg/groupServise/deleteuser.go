@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func (s *service) DeleteUser(ID int) (string, error) {
+func (s *service) DeleteUser(ID string) (string, error) {
 	if _, ok := s.Users[ID]; !ok {
 		return "", errors.New("user not found")
 	}

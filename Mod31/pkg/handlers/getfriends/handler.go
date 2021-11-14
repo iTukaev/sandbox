@@ -3,11 +3,10 @@ package getfriends
 import (
 	"github.com/go-chi/chi"
 	"net/http"
-	"strconv"
 )
 
 type Input struct {
-	TargetID int `json:"target_id"`
+	TargetID string `json:"target_id"`
 }
 
 func NewHandle(service groupInterface) func(w http.ResponseWriter, r *http.Request) {
@@ -21,7 +20,7 @@ type Handle struct {
 }
 
 type groupInterface interface {
-	GetFriends(ID int) (string, error)
+	GetFriends(ID string) (string, error)
 }
 
 func (h *Handle) GetFriends(w http.ResponseWriter, r *http.Request) {
@@ -31,13 +30,7 @@ func (h *Handle) GetFriends(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	param := chi.URLParam(r, "userId")
-	userID, err := strconv.Atoi(param)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
+	userID := chi.URLParam(r, "userId")
 
 	result, err := h.groupService.GetFriends(userID)
 	if err != nil {

@@ -7,8 +7,8 @@ import (
 )
 
 type AddFriend struct {
-	SourceID int `json:"source_id"`
-	TargetID int `json:"target_id"`
+	SourceID string `json:"source_id"`
+	TargetID string `json:"target_id"`
 }
 
 func NewHandler(service groupInterface) func(w http.ResponseWriter, r *http.Request) {
@@ -23,7 +23,7 @@ type Handle struct {
 }
 
 type groupInterface interface {
-	MakeFriend(TargetID int, SourceID int) (string, error)
+	MakeFriend(TargetID string, SourceID string) (string, error)
 }
 
 func (h *Handle) MakeFriend(w http.ResponseWriter, r *http.Request) {

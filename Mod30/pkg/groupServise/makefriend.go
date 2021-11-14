@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func (s *service) MakeFriend(TargetID int, SourceID int) (string, error) {
+func (s *service) MakeFriend(TargetID string, SourceID string) (string, error) {
 	if _, ok := s.Users[TargetID]; !ok {
 		return "", errors.New("target user not found")
 	}

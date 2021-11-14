@@ -6,25 +6,25 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"sandbox/Mod30/pkg/groupServise"
-	"sandbox/Mod30/pkg/handlers/ageupdate"
-	"sandbox/Mod30/pkg/handlers/create"
-	"sandbox/Mod30/pkg/handlers/deleteuser"
-	"sandbox/Mod30/pkg/handlers/getall"
-	"sandbox/Mod30/pkg/handlers/getfriends"
-	"sandbox/Mod30/pkg/handlers/makefriend"
+	"sandbox/Mod31/pkg/db/dbService"
+	"sandbox/Mod31/pkg/handlers/ageupdate"
+	"sandbox/Mod31/pkg/handlers/create"
+	"sandbox/Mod31/pkg/handlers/deleteuser"
+	"sandbox/Mod31/pkg/handlers/getall"
+	"sandbox/Mod31/pkg/handlers/getfriends"
+	"sandbox/Mod31/pkg/handlers/makefriend"
 	"time"
 )
 
 func Server(ctx context.Context, r *chi.Mux) {
 
-	group := groupServise.NewService()
-	r.Post("/create", create.NewHandler(group))
-	r.Post("/make_friends", makefriend.NewHandler(group))
-	r.Delete("/user", deleteuser.NewHandler(group))
-	r.Get("/friends/{userId}", getfriends.NewHandle(group))
-	r.Put("/{userId}", ageupdate.NewHandle(group))
-	r.Get("/get", getall.NewHandle(group))
+	client := dbService.NewService(ctx)
+	r.Post("/create", create.NewHandler(client))
+	r.Post("/make_friends", makefriend.NewHandler(client))
+	r.Delete("/user", deleteuser.NewHandler(client))
+	r.Get("/friends/{userId}", getfriends.NewHandle(client))
+	r.Put("/{userId}", ageupdate.NewHandle(client))
+	r.Get("/get", getall.NewHandle(client))
 
 
 	listener, err := net.Listen("tcp", "127.0.0.1:8000")
@@ -42,7 +42,6 @@ func Server(ctx context.Context, r *chi.Mux) {
 	go func() {
 		log.Println(server.Serve(listener))
 	}()
-
 
 	<-ctx.Done()
 	if err := server.Close(); err != nil {

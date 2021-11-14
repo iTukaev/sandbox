@@ -5,8 +5,8 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"log"
-	"sandbox/Mod30/pkg/server/start"
-	"sandbox/Mod30/pkg/server/stop"
+	"sandbox/Mod31/pkg/server/start"
+	"sandbox/Mod31/pkg/server/stop"
 )
 
 func main() {
