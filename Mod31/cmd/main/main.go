@@ -5,8 +5,8 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"log"
-	"sandbox/Mod31/pkg/server/start"
-	"sandbox/Mod31/pkg/server/stop"
+	"sandbox/Mod31/pkg/firstServer/firstStart"
+	"sandbox/Mod31/pkg/firstServer/firstStop"
 )
 
 func main() {
@@ -16,8 +16,10 @@ func main() {
 	log.Println("logger started")
 
 	ctx, cancel := context.WithCancel(context.Background())
-	stop.Server(cancel)
-	start.Server(ctx, router)
+	firstStop.Server(cancel)
+	firstStart.Server(ctx, router)
+	//secondStart.Server(ctx, router)
+	//proxy.Start(ctx)
 
 	log.Println("main: done")
 }

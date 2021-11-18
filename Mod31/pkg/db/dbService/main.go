@@ -2,7 +2,6 @@ package dbService
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -26,9 +25,9 @@ type Service interface {
 	GetAll() (*bytes.Buffer, error)
 }
 
-func NewService(ctx context.Context) Service {
+func NewService() Service {
 	s := service{
-		coll: MongoDbCollection(ctx),
+		coll: MongoDbCollection(),
 	}
 	return &s
 }

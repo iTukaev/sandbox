@@ -13,7 +13,7 @@ Begin:
 	fmt.Print("Ввод: ")
 	var numTxt string
 	fmt.Scan(&numTxt)
-	if numTxt == "stop" {
+	if numTxt == "firstStop" {
 		return firstStepChan, io.EOF
 	}
 	num, err := strconv.Atoi(numTxt)
