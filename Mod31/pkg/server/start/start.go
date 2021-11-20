@@ -1,4 +1,4 @@
-package secondStart
+package start
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func Server(ctx context.Context, r *chi.Mux) {
+func Server(ctx context.Context, r *chi.Mux, address string) {
 
 	client := dbService.NewService()
 	r.Post("/create", create.NewHandler(client))
@@ -27,7 +27,7 @@ func Server(ctx context.Context, r *chi.Mux) {
 	r.Get("/get", getall.NewHandle(client))
 
 
-	listener, err := net.Listen("tcp", "127.0.0.1:8002")
+	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Println(err)
 	}
@@ -38,7 +38,7 @@ func Server(ctx context.Context, r *chi.Mux) {
 		WriteTimeout: 5 * time.Second,
 	}
 
-	log.Println("secondServer started")
+	log.Println("server " + address + " started")
 	go func() {
 		log.Println(server.Serve(listener))
 	}()
@@ -46,7 +46,10 @@ func Server(ctx context.Context, r *chi.Mux) {
 	<-ctx.Done()
 	if err := server.Close(); err != nil {
 		log.Println(err)
-		return
 	}
-	log.Println("secondServer stopped")
+	if err := dbService.Stop(ctx); err != nil {
+		log.Println(err)
+	}
+
+	log.Println("server " + address + " stopped")
 }

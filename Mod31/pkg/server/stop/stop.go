@@ -1,4 +1,4 @@
-package secondStop
+package stop
 
 import (
 	"context"

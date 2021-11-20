@@ -2,7 +2,6 @@ package dbService
 
 import (
 	"bytes"
-	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -32,6 +31,6 @@ func NewService() Service {
 	return &s
 }
 
-func (u *User) toString() string {
-	return fmt.Sprintf("Name: %s, Age: %d, Friends: %v", u.Name, u.Age, u.Friends)
-}
+//func (u *User) toString() string {
+//	return fmt.Sprintf("Name: %s, Age: %d, Friends: %v", u.Name, u.Age, u.Friends)
+//}

@@ -38,7 +38,7 @@ func Server(ctx context.Context, r *chi.Mux) {
 		WriteTimeout: 5 * time.Second,
 	}
 
-	log.Println("firstServer started")
+	log.Println("server started")
 	go func() {
 		log.Println(server.Serve(listener))
 	}()
@@ -49,5 +49,5 @@ func Server(ctx context.Context, r *chi.Mux) {
 		log.Println(err)
 		return
 	}
-	log.Println("firstServer stopped")
+	log.Println("server stopped")
 }

@@ -1,4 +1,4 @@
-package firstStop
+package stop
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"syscall"
 )
 
-func Server(cancel context.CancelFunc) {
+func Proxy(cancel context.CancelFunc) {
 	go func() {
 		exitCh := make(chan os.Signal, 1)
 		signal.Notify(exitCh, os.Interrupt, syscall.SIGINT)
