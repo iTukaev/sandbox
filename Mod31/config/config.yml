@@ -1,0 +1,8 @@
+#proxy address
+proxy: "127.0.0.1:8000"
+
+#first server address
+first_server: "127.0.0.1:8001"
+
+#proxy address
+second_server: "127.0.0.1:8002"

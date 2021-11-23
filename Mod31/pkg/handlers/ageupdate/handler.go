@@ -12,7 +12,7 @@ type Input struct {
 	NewAge int `json:"new_age"`
 }
 
-func NewHandle(service groupInterface) func(w http.ResponseWriter, r *http.Request) {
+func NewHandler(service groupInterface) func(w http.ResponseWriter, r *http.Request) {
 	handle := &Handle{
 		groupService: service,
 	}

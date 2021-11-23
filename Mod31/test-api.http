@@ -4,8 +4,8 @@ POST http://127.0.0.1:8000/create
 Content-Type: application/json
 
 {
-  "name": "Ryan",
-  "age": 21
+  "name": "Sara",
+  "age": 32
 }
 
 

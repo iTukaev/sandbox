@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func NewHandle(service groupInterface) func(w http.ResponseWriter, r *http.Request) {
+func NewHandler(service groupInterface) func(w http.ResponseWriter, r *http.Request) {
 	handle := &Handle{
 		groupService: service,
 	}

@@ -9,6 +9,7 @@ import (
 
 var Client *mongo.Client
 var err error
+
 func MongoDbCollection() (coll *mongo.Collection) {
 	Client, err = mongo.NewClient(options.Client().ApplyURI("mongodb://127.0.0.1:27017"))
 	if err != nil {

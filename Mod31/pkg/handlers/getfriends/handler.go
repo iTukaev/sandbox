@@ -9,7 +9,7 @@ type Input struct {
 	TargetID string `json:"target_id"`
 }
 
-func NewHandle(service groupInterface) func(w http.ResponseWriter, r *http.Request) {
+func NewHandler(service groupInterface) func(w http.ResponseWriter, r *http.Request) {
 	handle := &Handle{
 		groupService: service,
 	}
