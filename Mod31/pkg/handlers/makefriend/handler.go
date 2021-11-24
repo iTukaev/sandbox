@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type AddFriend struct {
+type Input struct {
 	SourceID string `json:"source_id"`
 	TargetID string `json:"target_id"`
 }
@@ -40,7 +40,7 @@ func (h *Handle) MakeFriend(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	f := &AddFriend{}
+	f := &Input{}
 	if err := json.Unmarshal(content, f); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))

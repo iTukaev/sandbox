@@ -3,63 +3,52 @@ package deleteuser
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
-	"log"
+	"fmt"
+	"github.com/go-chi/chi"
 	"net/http"
 	"net/http/httptest"
-	"sandbox/Mod31/pkg/db/dbService"
-	"strings"
+	"sandbox/Mod31/pkg/handlers/test"
 	"testing"
 )
 
-func TestHandle_Create(t *testing.T)  {
-	user := Input{
-		TargetID: "619c850c5d3839cb4abab143",
-	}
+const (
+	correctResult = "User ID: 1, was deleted"
+)
 
-	reqBodyBytes, err := json.Marshal(&user)
+type User struct {}
+
+func (u *User) DeleteUser(ID string) (string, error) {
+	return fmt.Sprintf("User ID: %s, was deleted", ID), nil
+}
+
+func TestHandle_Delete(t *testing.T)  {
+	input := Input{
+		TargetID: "1",
+	}
+	user := User{}
+
+	reqBodyBytes, err := json.Marshal(&input)
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		t.Fatal(err)
 		return
 	}
 	reqBody := bytes.NewBuffer(reqBodyBytes)
 
-	client := dbService.NewService()
-	srv := httptest.NewServer(http.HandlerFunc(NewHandler(client)))
+	r := chi.NewRouter()
+	r.Delete("/user", NewHandler(&user))
+	ts := httptest.NewServer(r)
+	defer ts.Close()
 
-	cl := &http.Client{}
-	req, err := http.NewRequest(http.MethodDelete, srv.URL, reqBody)
-	if err != nil {
-		t.Log(err)
+	respStatus, respBody := test.Request(t, ts, http.MethodDelete, "/user", reqBody)
+
+	if respStatus != http.StatusOK {
+		t.Log("status fail")
 		t.Fail()
+		return
 	}
 
-	resp, err := cl.Do(req)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Println(err)
-		}
-	}()
-
-	if resp.StatusCode != http.StatusOK {
-		t.Log(err)
-		t.Fail()
-	}
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-
-	if !strings.Contains(string(respBody), "was deleted") {
-		t.Log(err)
+	if respBody != correctResult {
+		t.Log("body fail")
 		t.Fail()
 	}
 }

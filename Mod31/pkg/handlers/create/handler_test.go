@@ -3,56 +3,57 @@ package create
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
-	"log"
+	"fmt"
+	"github.com/go-chi/chi"
 	"net/http"
 	"net/http/httptest"
-	"sandbox/Mod31/pkg/db/dbService"
-	"strings"
+	"sandbox/Mod31/pkg/handlers/test"
 	"testing"
 )
 
+const (
+	correctResult = "User ID: 1, name: Peta was created"
+)
+
+type User struct {
+	Name string
+	Age int
+}
+
+func (u *User) CreateUser(name string, age int) (string, error) {
+	ID := "1"
+	*u = User{Name: name, Age: age}
+	return fmt.Sprintf("User ID: %s, name: %s was created", ID, name), nil
+}
+
 func TestHandle_Create(t *testing.T)  {
-	user := Input{
+	input := Input{
 		Name: "Peta",
 		Age: 15,
 	}
-	reqBodyBytes, err := json.Marshal(&user)
+	user := User{}
+
+	reqBodyBytes, err := json.Marshal(&input)
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		t.Fatal(err)
 		return
 	}
 	reqBody := bytes.NewBuffer(reqBodyBytes)
 
-	client := dbService.NewService()
-	srv := httptest.NewServer(http.HandlerFunc(NewHandler(client)))
+	r := chi.NewRouter()
+	r.Post("/create", NewHandler(&user))
+	ts := httptest.NewServer(r)
 
-	resp, err := http.Post(srv.URL, "application/json", reqBody)
-	if err != nil {
-		t.Log(err)
+	respStatus, respBody := test.Request(t, ts, http.MethodPost, "/create", reqBody)
+
+	if respStatus != http.StatusCreated {
+		t.Log("status fail")
 		t.Fail()
+		return
 	}
 
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Println(err)
-		}
-	}()
-
-	if resp.StatusCode != http.StatusCreated {
-		t.Log(err)
-		t.Fail()
-	}
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-
-	if !strings.Contains(string(respBody), "Peta") {
-		t.Log(err)
+	if respBody != correctResult {
+		t.Log("body fail")
 		t.Fail()
 	}
 }
