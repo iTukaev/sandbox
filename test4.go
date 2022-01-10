@@ -1,72 +1,37 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/PuerkitoBio/goquery"
 	"log"
+	"net/http"
 )
 
-type Employ struct {
-	Id int `json:"_id"`
-	Name string `json:"name"`
-	Age int `json:"age"`
-	Friends []int `json:"friends"`
-}
+const collyLinc = "https://stackoverflow.com/questions/67203641/missing-go-sum-entry-for-module-providing-package-package-name"
 
-func (e *Employ) New() *Employ {
-	return new(Employ)
-}
-
-func main()  {
-	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://127.0.0.1:27017"))
+func main() {
+	res, err := http.Get(collyLinc)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
-	if err := client.Connect(context.TODO()); err != nil {
-		log.Fatalln(err)
-	}
-	if err := client.Ping(context.TODO(), nil); err != nil {
-		log.Fatalln(err)
-	}
+	fmt.Println(res.Body)
 
-	log.Println("MongoDB started")
-
-	collection := client.Database("mod31").Collection("users")
 	defer func() {
-		if err := client.Disconnect(context.TODO()); err != nil {
-			log.Fatalln(err)
+		if err := res.Body.Close(); err != nil {
+			log.Println(err)
 		}
 	}()
-	//one := Employ{Id: 1,Name: "Tara",Age: 24, Friends: []int{1, 4, 5}}
-	//insertResult, err := collection.InsertOne(context.TODO(), one)
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//
-	//log.Println("Inserted a single document: ", insertResult.InsertedID)
 
-	//filter := bson.D{{"name", "Tara"}}
-
-	//update := bson.D{
-	//	{"$set", bson.D{
-	//		{"age", 45},
-	//	}},
-	//}
-
-	//updateResult, err := collection.UpdateOne(context.TODO(), filter, update)
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//
-	//fmt.Printf("Matched %v documents and updated %v documents.\n", updateResult.MatchedCount, updateResult.ModifiedCount)
-
-	f := collection.Indexes()
-	if err != nil {
-		log.Fatal(err)
+	if res.StatusCode != 200 {
+		log.Println("not 200")
 	}
 
-	fmt.Printf("Found a single document: %+v\n", &f)
+	// Load the HTML document
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		log.Println(err)
+	}
 
+	// Find the review items
+	fmt.Println(doc.Find("#price-value > span > span.js-item-price").Text())
 }

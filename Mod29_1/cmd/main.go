@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Input numbers or \"stop\" to break function")
+	fmt.Println("Input numbers or \"firstStop\" to break function")
 	for {
 		fc, err := steps.WaitNum()
 		if err != nil {
