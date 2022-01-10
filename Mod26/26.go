@@ -1,10 +1,9 @@
-//go run 26.go -first 123.txt -second 124.txt -result 125.txt
+//go run 26.go 123.txt 124.txt 125.txt
 
 package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -12,60 +11,59 @@ import (
 	"strings"
 )
 
-func readFile(name string) string {
-	file, err := os.Open(name)
-	defer file.Close()
-	if err != nil {
-		log.Fatal(err)
+func readFiles(files []string) string {
+	readStrings := make([]string, len(files), len(files))
+
+	for i, name := range files {
+		if i < 2 {
+			file, err := os.Open(name)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			b, err := ioutil.ReadAll(file)
+			if err != nil {
+				log.Fatal(err)
+			}
+			readStrings[i] = string(b)
+			file.Close()
+		}
 	}
 
-	b, err := ioutil.ReadAll(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return string(b)
+	return stringsConcatenate(readStrings)
 }
 
-func main () {
-	var flags = []string{"", "", ""}
+func stringsConcatenate(readStrings []string) string {
+	return strings.Join(readStrings, "\n")
+}
 
-	flag.StringVar(&flags[0], "first", "", "first file name")
-	flag.StringVar(&flags[1], "second", "", "second file name")
-	flag.StringVar(&flags[2], "result", "", "result file name")
-	flag.Parse()
-
-	var  checkFiles []bool
-	var result []string
-
-	for i := range flags {
-		checkFiles = append(checkFiles, flags[i] != "")
+func newFileCreate(files []string) error {
+	file, err := os.Create(files[2])
+	if err != nil {
+		return err
 	}
+	defer file.Close()
 
-	if checkFiles[0] {
-		result = append(result, readFile(flags[0]))
+	b := bytes.NewBufferString(readFiles(files))
+
+	if err := ioutil.WriteFile(files[2], b.Bytes(), 0777); err != nil {
+		return err
 	}
+	return nil
+}
 
-	if checkFiles[1] {
-		result = append(result, readFile(flags[1]))
-	}
+func main() {
+	filesNames := os.Args[1:]
 
-	resultString := strings.Join(result, "\n")
-
-	if !checkFiles[2] {
-		fmt.Println("Результат чтения:")
-		fmt.Println(resultString)
-	} else {
-		file, err := os.Create(flags[2])
-		if err != nil {
+	switch len(filesNames) {
+	case 0:
+		fmt.Println("А где же список файлов?")
+	case 1, 2:
+		fmt.Println("Содержимое файла(ов):\n\n", readFiles(filesNames))
+	case 3:
+		if err := newFileCreate(filesNames); err != nil {
 			log.Fatal(err)
 		}
-		defer file.Close()
-
-		b := bytes.NewBufferString(resultString)
-
-		if err := ioutil.WriteFile(flags[2], b.Bytes(), 0777); err != nil {
-			log.Fatal(err)
-		}
+		fmt.Println("Результат выполнения в файле:", filesNames[2])
 	}
 }

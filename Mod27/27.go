@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
-	"visibility/input"
+	"os"
+	"strconv"
+	"strings"
 )
 
 type Student struct {
@@ -31,7 +34,7 @@ func addStudentsToGroup(g *Group) {
 	g.StudentsByName = make(map[string]Student)
 
 	for {
-		if name, age, grade, err := input.ConsoleInput(); err == io.EOF {
+		if name, age, grade, err := ConsoleInput(); err == io.EOF {
 			return
 		} else {
 			s = *NewStudent(name, age, grade)
@@ -57,6 +60,27 @@ func (g *Group) GetAll() {
 		fmt.Println(g.StudentsByName[key].Name, g.StudentsByName[key].Age, g.StudentsByName[key].Grade)
 	}
 }
+
+func ConsoleInput() (name string, age int, grade int, err error) {
+	sc := bufio.NewScanner(os.Stdin)
+Beginning:
+	if sc.Scan() {
+		txt := sc.Text()
+		words := strings.Fields(txt)
+		if len(words) == 3 {
+			name = words[0]
+			age, _ = strconv.Atoi(words[1])
+			grade, _ = strconv.Atoi(words[2])
+		} else {
+			fmt.Println("Input error, repeat")
+			goto Beginning
+		}
+	} else {
+		err = io.EOF
+	}
+	return
+}
+
 
 func main() {
 	fmt.Println("Введите по очереди: Имя Возраст Курс:")
