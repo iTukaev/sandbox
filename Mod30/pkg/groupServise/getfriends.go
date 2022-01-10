@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func (s *service) GetFriends(ID string) (string, error) {
+func (s *service) GetFriends(ID int) (string, error) {
 	if _, ok := s.Users[ID]; !ok {
 		return "", errors.New("user not found")
 	}

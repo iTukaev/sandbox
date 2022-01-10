@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func (s *service) AgeUpdate(ID string, age int) (string, error) {
+func (s *service) AgeUpdate(ID int, age int) (string, error) {
 	if _, ok := s.Users[ID]; !ok {
 		return "", errors.New("user not found")
 	}

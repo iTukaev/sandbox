@@ -55,10 +55,11 @@ func subDirTree (in io.Writer, path string, prefix string, printFiles bool) erro
 	return nil
 }
 
-func postName(name *fs.FileInfo) string {
-	if !(*name).IsDir() {
-		if (*name).Size() > 0 {
-			return " (" + strconv.FormatInt((*name).Size(), 10) + "b)"
+func postName(name fs.FileInfo) string {
+	if !name.IsDir() {
+		if name.Size() > 0 {
+			return " (" + strconv.FormatInt(name.Size(), 10) + "b)"
+
 		} else {
 			return " (empty)"
 		}
