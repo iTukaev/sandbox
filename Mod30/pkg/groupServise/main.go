@@ -1,36 +1,39 @@
 package groupServise
 
 import (
-	"bytes"
 	"fmt"
+	"sync"
 )
 
 type User struct {
+	ID int `json:"id"`
 	Name string `json:"name"`
 	Age int `json:"age"`
-	Friends []int `json:"friends"`
+	Friends map[int]struct{} `json:"friends"`
 }
 
-type service struct {
+func NewUser(ID, age int, name string) *User {
+	return &User{
+		ID: ID,
+		Name: name,
+		Age: age,
+		Friends: make(map[int]struct{}),
+	}
+}
+
+type Service struct {
+	sync.Mutex
+	NextUserID int
 	Users map[int]*User
 }
 
-type Service interface {
-	CreateUser(name string, age int) (string, error)
-	DeleteUser(ID int) (string, error)
-	AgeUpdate(ID int, age int) (string, error)
-	GetFriends(ID int) (string, error)
-	MakeFriend(TargetID int, SourceID int) (string, error)
-	GetAll() *bytes.Buffer
-}
-
-func NewService() Service {
-	s := service{
-		make(map[int]*User),
+func NewService() *Service {
+	return &Service{
+		NextUserID: 0,
+		Users: make(map[int]*User),
 	}
-	return &s
 }
 
 func (u *User) toString() string {
-	return fmt.Sprintf("Name: %s, Age: %d, Friends: %v", u.Name, u.Age, u.Friends)
+	return fmt.Sprintf("ID: %d, Name: %s, Age: %d, Friends: %v", u.ID, u.Name, u.Age, u.Friends)
 }

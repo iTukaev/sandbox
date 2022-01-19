@@ -1,18 +1,16 @@
 package groupServise
 
 import (
-	"bytes"
-	"log"
-	"strconv"
+	"encoding/json"
 )
 
-func (s *service) GetAll() *bytes.Buffer {
-	var buf bytes.Buffer
+func (s *Service) GetAll() ([]byte, error) {
+	s.Lock()
+	defer s.Unlock()
 
-	for key, val := range s.Users {
-		if _, err := buf.WriteString("User ID: " + strconv.Itoa(key) + "\t" + val.toString() + "\n"); err != nil {
-			log.Println(err)
-		}
+	body, err := json.Marshal(s.Users)
+	if err != nil {
+		return nil, err
 	}
-	return &buf
+	return body, nil
 }

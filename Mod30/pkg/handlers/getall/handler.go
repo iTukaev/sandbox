@@ -1,7 +1,6 @@
 package getall
 
 import (
-	"bytes"
 	"net/http"
 )
 
@@ -17,7 +16,7 @@ type Handle struct {
 }
 
 type groupInterface interface {
-	GetAll() *bytes.Buffer
+	GetAll() ([]byte, error)
 }
 
 func (h *Handle) GetAll(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +26,14 @@ func (h *Handle) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	buf := h.groupService.GetAll()
+	body, err := h.groupService.GetAll()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(buf.Bytes())
+	w.Write(body)
 }

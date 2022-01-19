@@ -2,34 +2,25 @@ package groupServise
 
 import (
 	"errors"
-	"fmt"
 )
 
-func (s *service) MakeFriend(TargetID int, SourceID int) (string, error) {
-	if _, ok := s.Users[TargetID]; !ok {
-		return "", errors.New("target user not found")
+func (s *Service) MakeFriend(targetID int, sourceID int) error {
+	s.Lock()
+	defer s.Unlock()
+
+	if _, ok := s.Users[targetID]; !ok {
+		return errors.New("target user not found")
 	}
 
-	if _, ok := s.Users[SourceID]; !ok {
-		return "", errors.New("source user not found")
+	if _, ok := s.Users[sourceID]; !ok {
+		return errors.New("source user not found")
 	}
 
-	if err := findFriendInFriends(&s.Users[TargetID].Friends, SourceID); err != nil {
-		return "", err
+	if _, ok := s.Users[targetID].Friends[sourceID]; ok {
+		return errors.New("users already friends")
 	}
 
-	s.Users[TargetID].Friends = append(s.Users[TargetID].Friends, SourceID)
-	result := fmt.Sprintf("User ID: %d added to friend's list to user ID: %d", SourceID, TargetID)
-	return result, nil
-}
-
-func findFriendInFriends(s *[]int, num int) error {
-	var err error = nil
-
-	for _, val := range *s {
-		if val == num {
-			return errors.New("these users are already friends")
-		}
-	}
-	return err
+	s.Users[targetID].Friends[sourceID] = struct{}{}
+	s.Users[sourceID].Friends[targetID] = struct{}{}
+	return nil
 }

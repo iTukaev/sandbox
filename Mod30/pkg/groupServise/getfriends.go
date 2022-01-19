@@ -2,25 +2,24 @@ package groupServise
 
 import (
 	"errors"
-	"fmt"
+	"strconv"
 )
 
-func (s *service) GetFriends(ID int) (string, error) {
+func (s *Service) GetFriends(ID int) ([]string, error) {
+	s.Lock()
+	defer s.Unlock()
 	if _, ok := s.Users[ID]; !ok {
-		return "", errors.New("user not found")
+		return nil, errors.New("user not found")
 	}
-
-	result := ""
 
 	if len(s.Users[ID].Friends) == 0 {
-		result = fmt.Sprintf("User %s has not friends", s.Users[ID].Name)
-		return result, nil
+		return nil, nil
 	}
 
-	result = fmt.Sprintf("Friends of user ID: %d -\n", ID)
-	for _, val := range s.Users[ID].Friends {
-		result += fmt.Sprintf("\tID: %d\n", val)
+	friends := make([]string, 0, len(s.Users[ID].Friends))
+	for key, _ := range s.Users[ID].Friends {
+		friends = append(friends, strconv.Itoa(key))
 	}
 
-	return result, nil
+	return friends, nil
 }

@@ -16,7 +16,8 @@ import (
 	"time"
 )
 
-func Server(ctx context.Context, r *chi.Mux) {
+
+func Server(ctx context.Context, r *chi.Mux, address string) {
 
 	group := groupServise.NewService()
 	r.Post("/create", create.NewHandler(group))
@@ -27,7 +28,7 @@ func Server(ctx context.Context, r *chi.Mux) {
 	r.Get("/get", getall.NewHandle(group))
 
 
-	listener, err := net.Listen("tcp", "127.0.0.1:8000")
+	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Println(err)
 	}

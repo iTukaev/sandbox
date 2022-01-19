@@ -3,8 +3,8 @@ package create
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
+	"strconv"
 )
 
 type Input struct {
@@ -24,8 +24,14 @@ type Handle struct {
 }
 
 type groupInterface interface {
-	CreateUser(name string, age int) (string, error)
+	CreateUser(name string, age int) int
 }
+
+func InternalError(w http.ResponseWriter, errStr string)  {
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte(errStr))
+}
+
 
 func (h *Handle) Create(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -35,29 +41,19 @@ func (h *Handle) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		InternalError(w, err.Error())
 		return
 	}
-	defer func() {
-		if err := r.Body.Close(); err != nil {
-			log.Println(err)
-		}
-	}()
+	defer r.Body.Close()
 
-	inputPayload := &Input{}
-	if err := json.Unmarshal(content, inputPayload); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+	input := &Input{}
+	if err = json.Unmarshal(content, input); err != nil {
+		InternalError(w, err.Error())
 		return
 	}
 
-	result, err := h.groupService.CreateUser(inputPayload.Name, inputPayload.Age)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
+	ID := h.groupService.CreateUser(input.Name, input.Age)
+
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(result))
+	w.Write([]byte(strconv.Itoa(ID)))
 }

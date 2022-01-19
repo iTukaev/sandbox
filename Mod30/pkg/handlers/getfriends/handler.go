@@ -1,6 +1,7 @@
 package getfriends
 
 import (
+	"fmt"
 	"github.com/go-chi/chi"
 	"net/http"
 	"strconv"
@@ -21,8 +22,14 @@ type Handle struct {
 }
 
 type groupInterface interface {
-	GetFriends(ID int) (string, error)
+	GetFriends(ID int) ([]string, error)
 }
+
+func InternalError(w http.ResponseWriter, errStr string)  {
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte(errStr))
+}
+
 
 func (h *Handle) GetFriends(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -34,18 +41,16 @@ func (h *Handle) GetFriends(w http.ResponseWriter, r *http.Request) {
 	param := chi.URLParam(r, "userId")
 	userID, err := strconv.Atoi(param)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		InternalError(w, err.Error())
 		return
 	}
 
 	result, err := h.groupService.GetFriends(userID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		InternalError(w, err.Error())
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(result))
+	w.Write([]byte(fmt.Sprintf("Friends of user ID: %d - %v", userID, result)))
 }

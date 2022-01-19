@@ -2,10 +2,11 @@ package groupServise
 
 import (
 	"errors"
-	"fmt"
 )
 
-func (s *service) DeleteUser(ID int) (string, error) {
+func (s *Service) DeleteUser(ID int) (string, error) {
+	s.Lock()
+	defer s.Unlock()
 	if _, ok := s.Users[ID]; !ok {
 		return "", errors.New("user not found")
 	}
@@ -13,6 +14,11 @@ func (s *service) DeleteUser(ID int) (string, error) {
 	name := s.Users[ID].Name
 	delete(s.Users, ID)
 
-	result := fmt.Sprintf("User ID: %d, name: %s was deleted", ID, name)
-	return result, nil
+	for key, _ := range s.Users {
+		if _, ok := s.Users[key].Friends[ID]; ok {
+			delete(s.Users[key].Friends, ID)
+		}
+	}
+
+	return name, nil
 }

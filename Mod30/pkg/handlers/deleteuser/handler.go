@@ -2,8 +2,8 @@ package deleteuser
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -26,6 +26,12 @@ type groupInterface interface {
 	DeleteUser(ID int) (string, error)
 }
 
+func InternalError(w http.ResponseWriter, errStr string)  {
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte(errStr))
+}
+
+
 func (h *Handle) Delete(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		w.WriteHeader(http.StatusBadRequest)
@@ -35,30 +41,23 @@ func (h *Handle) Delete(w http.ResponseWriter, r *http.Request) {
 
 	content, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		InternalError(w, err.Error())
 		return
 	}
-	defer func() {
-		if err := r.Body.Close(); err != nil {
-			log.Println(err)
-		}
-	}()
+	defer r.Body.Close()
 
 	f := &Input{}
-	if err := json.Unmarshal(content, f); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+	if err = json.Unmarshal(content, f); err != nil {
+		InternalError(w, err.Error())
 		return
 	}
 
-	result, err := h.groupService.DeleteUser(f.TargetID)
+	name, err := h.groupService.DeleteUser(f.TargetID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		InternalError(w, err.Error())
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(result))
+	w.Write([]byte(fmt.Sprintf("User ID: %d, Name: %s, remove successfull", f.TargetID, name )))
 }
