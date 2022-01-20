@@ -3,7 +3,6 @@ package ageupdate
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi"
 	"net/http"
 	"net/http/httptest"
@@ -12,13 +11,13 @@ import (
 )
 
 const (
-	correctResult = "User's ID: 1 age updated"
+	correctResult = ""
 )
 
 type User struct {}
 
-func (u *User) AgeUpdate(ID string, age int) (string, error) {
-	return fmt.Sprintf("User's ID: %s age updated", ID), nil
+func (u *User) AgeUpdate(ID string, age int) error {
+	return nil
 }
 
 func TestHandle_AgeUpdate(t *testing.T)  {
@@ -28,21 +27,20 @@ func TestHandle_AgeUpdate(t *testing.T)  {
 
 	user := User{}
 
-	reqBodyBytes, err := json.Marshal(&input)
+	reqBody, err := json.Marshal(&input)
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	reqBody := bytes.NewBuffer(reqBodyBytes)
 
 	r := chi.NewRouter()
 	r.Put("/{userId}", NewHandler(&user))
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
-	respStatus, respBody := test.Request(t, ts, http.MethodPut, "/1", reqBody)
+	respStatus, respBody := test.Request(t, ts, http.MethodPut, "/1", bytes.NewBuffer(reqBody))
 
-	if respStatus != http.StatusOK {
+	if respStatus != http.StatusNoContent {
 		t.Log("status fail")
 		t.Fail()
 		return

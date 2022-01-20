@@ -2,9 +2,9 @@ package deleteuser
 
 import (
 	"encoding/json"
+	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -24,8 +24,14 @@ type Handle struct {
 }
 
 type groupInterface interface {
-	DeleteUser(ID string) (string, error)
+	DeleteUser(ID string) error
 }
+
+func InternalError(w http.ResponseWriter, errStr string) {
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte(errStr))
+}
+
 
 func (h *Handle) Delete(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
@@ -36,35 +42,28 @@ func (h *Handle) Delete(w http.ResponseWriter, r *http.Request) {
 
 	content, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		InternalError(w, err.Error())
 		return
 	}
-	defer func() {
-		if err := r.Body.Close(); err != nil {
-			log.Println(err)
-		}
-	}()
+	defer r.Body.Close()
 
-	f := &Input{}
-	if err := json.Unmarshal(content, f); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+	inputPayload := &Input{}
+	if err := json.Unmarshal(content, inputPayload); err != nil {
+		InternalError(w, err.Error())
 		return
 	}
 
-	result, err := h.groupService.DeleteUser(f.TargetID)
+	err = h.groupService.DeleteUser(inputPayload.TargetID)
 	if err == mongo.ErrNoDocuments {
 		w.WriteHeader(http.StatusNoContent)
-		w.Write([]byte(err.Error()))
+		w.Write([]byte("User not found"))
 		return
 	}
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		InternalError(w, err.Error())
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(result))
+	w.Write([]byte(fmt.Sprintf("User ID %s was deleted", inputPayload.TargetID)))
 }

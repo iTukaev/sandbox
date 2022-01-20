@@ -3,7 +3,6 @@ package makefriend
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi"
 	"net/http"
 	"net/http/httptest"
@@ -12,13 +11,13 @@ import (
 )
 
 const (
-	correctResult = "User ID: 2 now friend to user ID: 1"
+	correctResult = ""
 )
 
 type User struct {}
 
-func (u *User) MakeFriend(TargetID string, SourceID string) (string, error) {
-	return fmt.Sprintf("User ID: %s now friend to user ID: %s", SourceID, TargetID), nil
+func (u *User) MakeFriend(TargetID string, SourceID string) error {
+	return nil
 }
 
 func TestHandle_GetFriends(t *testing.T)  {
@@ -28,21 +27,20 @@ func TestHandle_GetFriends(t *testing.T)  {
 	}
 	user := User{}
 
-	reqBodyBytes, err := json.Marshal(&input)
+	reqBody, err := json.Marshal(&input)
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	reqBody := bytes.NewBuffer(reqBodyBytes)
 
 	r := chi.NewRouter()
 	r.Post("/make_friends", NewHandler(&user))
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
-	respStatus, respBody := test.Request(t, ts, http.MethodPost, "/make_friends", reqBody)
+	respStatus, respBody := test.Request(t, ts, http.MethodPost, "/make_friends", bytes.NewBuffer(reqBody))
 
-	if respStatus != http.StatusOK {
+	if respStatus != http.StatusNoContent {
 		t.Log("status fail")
 		t.Fail()
 		return

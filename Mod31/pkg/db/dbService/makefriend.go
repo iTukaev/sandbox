@@ -5,30 +5,44 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"time"
 )
 
-func (s *service) MakeFriend(targetID string, sourceID string) (string, error) {
-	objID, err := primitive.ObjectIDFromHex(targetID)
+func (s *Service) MakeFriend(TargetID string, SourceID string) error {
+	targetObjID, err := primitive.ObjectIDFromHex(TargetID)
 	if err != nil {
-		return "", err
+		return err
+	}
+	sourceObjID, err := primitive.ObjectIDFromHex(TargetID)
+	if err != nil {
+		return err
 	}
 
-	//search target user in db
-	filter := bson.D{{"_id", objID}}
-	opts := options.FindOne()
-	if err = s.coll.FindOne(context.TODO(), filter, opts).Err(); err != nil {
+	ctx, _ := context.WithTimeout(context.Background(), 5 * time.Second)
+	targetFilter := bson.D{{"_id", targetObjID}}
+	if err = s.coll.FindOne(ctx, targetFilter).Err(); err != nil {
 		log.Println(err)
-		return "", err
+		return fmt.Errorf("user %s not found %w", targetObjID, err)
 	}
 
-	optsUpdate := options.FindOneAndUpdate().SetUpsert(false)
-	update := bson.D{{"$addToSet", bson.D{{"friends", sourceID}}}}
-	if err = s.coll.FindOneAndUpdate(context.TODO(), filter, update, optsUpdate).Err(); err != nil {
+	sourceFilter := bson.D{{"_id", sourceObjID}}
+	if err = s.coll.FindOne(ctx, sourceFilter).Err(); err != nil {
 		log.Println(err)
-		return "", err
+		return fmt.Errorf("user %s not found %w", sourceObjID, err)
 	}
-	result := fmt.Sprintf("User ID: %s now friend to user ID: %s", sourceID, targetID)
-	return result, nil
+
+	targetUpdate := bson.D{{"$addToSet", bson.D{{"friends", SourceID}}}}
+	if err = s.coll.FindOneAndUpdate(ctx, targetFilter, targetUpdate).Err(); err != nil {
+		log.Println(err)
+		return err
+	}
+
+	sourceUpdate := bson.D{{"$addToSet", bson.D{{"friends", TargetID}}}}
+	if err = s.coll.FindOneAndUpdate(ctx, targetFilter, sourceUpdate).Err(); err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
 }

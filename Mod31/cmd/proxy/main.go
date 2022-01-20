@@ -4,12 +4,14 @@ import (
 	"context"
 	"github.com/ilyakaznacheev/cleanenv"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 var count int
@@ -22,30 +24,45 @@ type Config struct {
 
 func main() {
 	cfg := new(Config)
-	if err := cleanenv.ReadConfig("./Mod31/config/config.yml", cfg); err != nil {
-		panic(err)
+	if err := cleanenv.ReadConfig("./config/config.yml", cfg); err != nil {
+		log.Fatalf("Config not available %v", err)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	stop(cancel)
 	start(ctx, *cfg)
-	log.Println("main", cfg.Proxy, "done")
+	log.Printf("main %s done", cfg.Proxy)
 }
 
 
-func start(ctx context.Context, cfg Config)  {
-	go func() {
-		if err := http.ListenAndServe(cfg.Proxy, nil); err != nil {
-			log.Println("proxy", cfg.Proxy, "not started:", err)
-			panic(err)
-		}
-	}()
-	log.Println("proxy", cfg.Proxy, "started")
+func start(ctx context.Context, cfg Config) {
+	listener, err := net.Listen("tcp", cfg.Proxy)
+	if err != nil {
+		log.Fatalf("Listener start error: %v", err)
+	}
 
-	http.HandleFunc("/", cfg.Handler)
+	server := &http.Server{
+		Handler: nil,
+		ReadTimeout: 5 * time.Second,
+		WriteTimeout: 5 * time.Second,
+	}
+
+	go func() {
+		log.Println(server.Serve(listener))
+	}()
+
+	log.Printf("proxy %s started", cfg.Proxy)
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		ReversProxyStarter(w, r, cfg)
+	})
 
 	<-ctx.Done()
-	log.Println("proxy", cfg.Proxy, "stopped")
+	time.Sleep(3 * time.Second)
+	if err := server.Close(); err != nil {
+		log.Printf("Server closing error: %v", err)
+	}
+	log.Printf("proxy %s stopped", cfg.Proxy)
 }
 
 
@@ -58,21 +75,21 @@ func stop(cancel context.CancelFunc) {
 	}()
 }
 
-func (cfg Config) Handler(w http.ResponseWriter, r *http.Request, ) {
+func ReversProxyStarter(w http.ResponseWriter, r *http.Request, cfg Config) {
 	firstURL, err := url.Parse("http://" + cfg.FirstServer)
 	if err != nil {
-		log.Println(cfg.FirstServer, "URL error: ", err)
+		log.Printf("URL %s parsing error: %v", cfg.FirstServer, err)
 		return
 	}
 
 	secondURL, err := url.Parse("http://" + cfg.SecondServer)
 	if err != nil {
-		log.Println(cfg.SecondServer, "URL error: ", err)
+		log.Printf("URL %s parsing error: %v", cfg.SecondServer, err)
 		return
 	}
 
 	if count == 0 {
-		log.Println("redirected on:", cfg.FirstServer)
+		log.Printf("redirected on: %s", cfg.FirstServer)
 		proxy := httputil.NewSingleHostReverseProxy(firstURL)
 		proxy.ServeHTTP(w, r)
 		count++
@@ -80,7 +97,7 @@ func (cfg Config) Handler(w http.ResponseWriter, r *http.Request, ) {
 	}
 
 	if count == 1 {
-		log.Println("redirected on:", cfg.SecondServer)
+		log.Printf("redirected on: %s", cfg.SecondServer)
 		proxy := httputil.NewSingleHostReverseProxy(secondURL)
 		proxy.ServeHTTP(w, r)
 		count--

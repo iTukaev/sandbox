@@ -2,25 +2,24 @@ package dbService
 
 import (
 	"context"
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
+	"time"
 )
 
-func (s *service) CreateUser(name string, age int) (string, error) {
+func (s *Service) CreateUser(name string, age int) (string, error) {
 	u := User{
 		Name: name,
 		Age: age,
 		Friends: []string{},
 	}
 
-	res, err := s.coll.InsertOne(context.TODO(), u)
+	ctx, _ := context.WithTimeout(context.Background(), 5 * time.Second)
+	res, err := s.coll.InsertOne(ctx, u)
 	if err != nil {
-		log.Println(err)
+		log.Printf("User %s creating error %v",name, err)
 		return "", err
 	}
-	ID := res.InsertedID.(primitive.ObjectID).Hex()
 
-	result := fmt.Sprintf("User ID: %s, name: %s was created", ID, name)
-	return result, nil
+	return res.InsertedID.(primitive.ObjectID).Hex(), nil
 }

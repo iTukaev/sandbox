@@ -6,3 +6,12 @@ first_server: "127.0.0.1:8001"
 
 #proxy address
 second_server: "127.0.0.1:8002"
+
+#mongo server address
+mongo_server: "127.0.0.1:27017"
+
+#mongo database
+database: "mod31"
+
+#mongo collection
+collection: "users"

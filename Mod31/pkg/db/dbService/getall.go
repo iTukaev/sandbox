@@ -5,18 +5,19 @@ import (
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"time"
 )
 
-func (s *service) GetAll() (*bytes.Buffer, error) {
-	var buf bytes.Buffer
-
-	documents, err := s.coll.Find(context.TODO(), bson.M{}, options.Find())
+func (s *Service) GetAll() ([]byte, error) {
+	ctx, _ := context.WithTimeout(context.Background(), 5 * time.Second)
+	documents, err := s.coll.Find(ctx, bson.M{}, options.Find())
 	if err != nil {
 		return nil, err
 	}
 
-	for documents.Next(context.TODO()) {
-		buf.WriteString(documents.Current.String() + "\n")
+	var builder bytes.Buffer
+	for documents.Next(ctx) {
+		builder.WriteString(documents.Current.String())
 	}
-	return &buf, nil
+	return builder.Bytes(), nil
 }

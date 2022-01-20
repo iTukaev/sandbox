@@ -1,7 +1,6 @@
 package getall
 
 import (
-	"bytes"
 	"encoding/json"
 	"github.com/go-chi/chi"
 	"net/http"
@@ -20,12 +19,12 @@ type User struct {
 	Friends []string `json:"friends"`
 }
 
-func (u *User) GetAll() (*bytes.Buffer, error) {
+func (u *User) GetAll() ([]byte, error) {
 	buf, err := json.Marshal(u)
 	if err != nil {
 		return nil, err
 	}
-	return bytes.NewBuffer(buf), nil
+	return buf, nil
 }
 
 func TestHandle_GetAll(t *testing.T)  {

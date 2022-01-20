@@ -2,25 +2,24 @@ package dbService
 
 import (
 	"context"
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"time"
 )
 
-func (s *service) GetFriends(ID string) (string, error) {
+func (s *Service) GetFriends(ID string) ([]string, error) {
 	objID, err := primitive.ObjectIDFromHex(ID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	var u User
+	ctx, _ := context.WithTimeout(context.Background(), 5 * time.Second)
+	u := new(User)
 	filter := bson.D{{"_id", objID}}
-	opts := options.FindOne()
 
-	if err = s.coll.FindOne(context.TODO(), filter, opts).Decode(&u); err != nil {
-		return "", err
+	if err = s.coll.FindOne(ctx, filter).Decode(u); err != nil {
+		return nil, err
 	}
-	result := fmt.Sprintf("Friends of user ID: %s - %v", ID, u.Friends)
-	return result, nil
+
+	return u.Friends, nil
 }

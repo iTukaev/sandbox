@@ -2,26 +2,25 @@ package dbService
 
 import (
 	"context"
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"time"
 )
 
-func (s *service) AgeUpdate(ID string, age int) (string, error) {
+func (s *Service) AgeUpdate(ID string, age int) error {
 	objID, err := primitive.ObjectIDFromHex(ID)
 	if err != nil {
 		log.Println(err)
-		return "", err
+		return err
 	}
 
-	opts := options.FindOneAndUpdate().SetUpsert(false)
+	ctx, _ := context.WithTimeout(context.Background(), 5 * time.Second)
 	filter := bson.D{{"_id", objID}}
 	update := bson.D{{"$set", bson.D{{"age", age}}}}
-	if err := s.coll.FindOneAndUpdate(context.TODO(), filter, update, opts).Err(); err != nil {
+	if err := s.coll.FindOneAndUpdate(ctx, filter, update).Err(); err != nil {
 		log.Println(err)
-		return "", err
+		return err
 	}
-	return fmt.Sprintf("User's ID: %s age updated", ID), nil
+	return nil
 }

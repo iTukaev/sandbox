@@ -1,7 +1,9 @@
 package getfriends
 
 import (
+	"fmt"
 	"github.com/go-chi/chi"
+	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
 )
 
@@ -20,7 +22,7 @@ type Handle struct {
 }
 
 type groupInterface interface {
-	GetFriends(ID string) (string, error)
+	GetFriends(ID string) ([]string, error)
 }
 
 func (h *Handle) GetFriends(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +34,12 @@ func (h *Handle) GetFriends(w http.ResponseWriter, r *http.Request) {
 
 	userID := chi.URLParam(r, "userId")
 
-	result, err := h.groupService.GetFriends(userID)
+	friends, err := h.groupService.GetFriends(userID)
+	if err == mongo.ErrNoDocuments {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("user not found"))
+		return
+	}
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -40,5 +47,5 @@ func (h *Handle) GetFriends(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(result))
+	w.Write([]byte(fmt.Sprintf("Friends of user %s - %v", userID, friends)))
 }

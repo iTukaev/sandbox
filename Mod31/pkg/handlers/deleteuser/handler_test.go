@@ -3,7 +3,6 @@ package deleteuser
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi"
 	"net/http"
 	"net/http/httptest"
@@ -12,34 +11,33 @@ import (
 )
 
 const (
-	correctResult = "User ID: 1, was deleted"
+	correctResult = "User ID 0000 was deleted"
 )
 
 type User struct {}
 
-func (u *User) DeleteUser(ID string) (string, error) {
-	return fmt.Sprintf("User ID: %s, was deleted", ID), nil
+func (u *User) DeleteUser(ID string) error {
+	return nil
 }
 
 func TestHandle_Delete(t *testing.T)  {
 	input := Input{
-		TargetID: "1",
+		TargetID: "0000",
 	}
 	user := User{}
 
-	reqBodyBytes, err := json.Marshal(&input)
+	reqBody, err := json.Marshal(&input)
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	reqBody := bytes.NewBuffer(reqBodyBytes)
 
 	r := chi.NewRouter()
 	r.Delete("/user", NewHandler(&user))
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
-	respStatus, respBody := test.Request(t, ts, http.MethodDelete, "/user", reqBody)
+	respStatus, respBody := test.Request(t, ts, http.MethodDelete, "/user", bytes.NewBuffer(reqBody))
 
 	if respStatus != http.StatusOK {
 		t.Log("status fail")

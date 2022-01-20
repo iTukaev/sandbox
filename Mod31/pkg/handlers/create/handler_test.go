@@ -3,7 +3,6 @@ package create
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +11,7 @@ import (
 )
 
 const (
-	correctResult = "User ID: 1, name: Peta was created"
+	correctResult = "User name: Peta created with ID: 0000"
 )
 
 type User struct {
@@ -21,9 +20,10 @@ type User struct {
 }
 
 func (u *User) CreateUser(name string, age int) (string, error) {
-	ID := "1"
-	*u = User{Name: name, Age: age}
-	return fmt.Sprintf("User ID: %s, name: %s was created", ID, name), nil
+	ID := "0000"
+	u.Name = name
+	u.Age = age
+	return ID, nil
 }
 
 func TestHandle_Create(t *testing.T)  {
@@ -33,18 +33,17 @@ func TestHandle_Create(t *testing.T)  {
 	}
 	user := User{}
 
-	reqBodyBytes, err := json.Marshal(&input)
+	reqBody, err := json.Marshal(&input)
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	reqBody := bytes.NewBuffer(reqBodyBytes)
 
 	r := chi.NewRouter()
 	r.Post("/create", NewHandler(&user))
 	ts := httptest.NewServer(r)
 
-	respStatus, respBody := test.Request(t, ts, http.MethodPost, "/create", reqBody)
+	respStatus, respBody := test.Request(t, ts, http.MethodPost, "/create", bytes.NewBuffer(reqBody))
 
 	if respStatus != http.StatusCreated {
 		t.Log("status fail")

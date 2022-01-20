@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/go-chi/chi"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -23,8 +22,14 @@ type Handle struct {
 }
 
 type groupInterface interface {
-	AgeUpdate(ID string, age int) (string, error)
+	AgeUpdate(ID string, age int) error
 }
+
+func InternalError(w http.ResponseWriter, errStr string) {
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte(errStr))
+}
+
 
 func (h *Handle) AgeUpdate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
@@ -37,30 +42,22 @@ func (h *Handle) AgeUpdate(w http.ResponseWriter, r *http.Request) {
 
 	content, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		InternalError(w, err.Error())
 		return
 	}
-	defer func() {
-		if err := r.Body.Close(); err != nil {
-			log.Println(err)
-		}
-	}()
+	defer r.Body.Close()
 
-	f := &Input{}
-	if err := json.Unmarshal(content, f); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+	inputPayload := &Input{}
+	if err := json.Unmarshal(content, inputPayload); err != nil {
+		InternalError(w, err.Error())
 		return
 	}
 
-	result, err := h.groupService.AgeUpdate(userID, f.NewAge)
+	err = h.groupService.AgeUpdate(userID, inputPayload.NewAge)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		InternalError(w, err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(result))
+	w.WriteHeader(http.StatusNoContent)
 }

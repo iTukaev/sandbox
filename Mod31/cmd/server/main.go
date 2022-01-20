@@ -29,7 +29,7 @@ type Config struct {
 
 func main() {
 	cfg := new(Config)
-	if err := cleanenv.ReadConfig("./Mod31/config/config.yml", cfg); err != nil {
+	if err := cleanenv.ReadConfig("./config/config.yml", cfg); err != nil {
 		panic(err)
 	}
 
@@ -41,15 +41,15 @@ func main() {
 	}
 
 	router := chi.NewRouter()
-	log.Println("router " + host + " created")
+	log.Printf("router %s created", host)
 	router.Use(middleware.Logger)
-	log.Println("logger " + host + " started")
+	log.Printf("logger %s created", host)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	stop(cancel)
 	start(ctx, router, host)
 
-	log.Println("main " + host + " done")
+	log.Printf("main %s done", host)
 }
 
 
@@ -75,20 +75,20 @@ func start(ctx context.Context, r *chi.Mux, address string) {
 		WriteTimeout: 5 * time.Second,
 	}
 
-	log.Println("server " + address + " started")
+	log.Printf("server %s started", address)
 	go func() {
 		log.Println(server.Serve(listener))
 	}()
 
 	<-ctx.Done()
 	if err := server.Close(); err != nil {
-		log.Println(err)
+		log.Printf("Server closing error: %v", err)
 	}
 	if err := dbService.Stop(ctx); err != nil {
-		log.Println(err)
+		log.Printf("MongoDB stop error: %v", err)
 	}
 
-	log.Println("server " + address + " stopped")
+	log.Printf("server %s stopped", address)
 }
 
 

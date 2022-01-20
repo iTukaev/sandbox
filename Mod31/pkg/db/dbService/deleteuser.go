@@ -2,36 +2,33 @@ package dbService
 
 import (
 	"context"
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"time"
 )
 
-func (s *service) DeleteUser(ID string) (string, error) {
+func (s *Service) DeleteUser(ID string) error {
 	objID, err := primitive.ObjectIDFromHex(ID)
 	if err != nil{
 		log.Println(err)
-		return "", err
+		return err
 	}
 
-	err = s.coll.FindOneAndDelete(context.TODO(), bson.M{"_id": objID}).Err()
+	ctx, _ := context.WithTimeout(context.Background(), 5 * time.Second)
+	err = s.coll.FindOneAndDelete(ctx, bson.M{"_id": objID}).Err()
 	if err == mongo.ErrNoDocuments {
 		log.Println(err)
-		return "", err
+		return err
 	}
 
 	filter := bson.D{{"friends", ID}}
-	optsUpdate := options.FindOneAndUpdate().SetUpsert(false)
 	update := bson.D{{"$pull", bson.D{{"friends", ID}}}}
-	for {
-		if err = s.coll.FindOneAndUpdate(context.TODO(), filter, update, optsUpdate).Err(); err != nil {
-			break
-		}
+	if _, err = s.coll.UpdateMany(ctx, filter, update); err != nil {
+		log.Println(err)
+		return err
 	}
 
-	result := fmt.Sprintf("User ID: %s, was deleted", ID)
-	return result, nil
+	return nil
 }

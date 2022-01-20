@@ -2,6 +2,9 @@ package makefriend
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"go.mongodb.org/mongo-driver/mongo"
 	"io/ioutil"
 	"net/http"
 )
@@ -23,7 +26,12 @@ type Handle struct {
 }
 
 type groupInterface interface {
-	MakeFriend(TargetID string, SourceID string) (string, error)
+	MakeFriend(TargetID string, SourceID string) error
+}
+
+func InternalError(w http.ResponseWriter, errStr string) {
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte(errStr))
 }
 
 func (h *Handle) MakeFriend(w http.ResponseWriter, r *http.Request) {
@@ -34,27 +42,28 @@ func (h *Handle) MakeFriend(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		InternalError(w, err.Error())
 		return
 	}
 	defer r.Body.Close()
 
 	f := &Input{}
 	if err := json.Unmarshal(content, f); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		InternalError(w, err.Error())
 		return
 	}
 
-	responseBody, err := h.groupService.MakeFriend(f.TargetID, f.SourceID)
+	err = h.groupService.MakeFriend(f.TargetID, f.SourceID)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(fmt.Sprintf("user not found, %v", err)))
+		return
+	}
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		InternalError(w, err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(responseBody))
+	w.WriteHeader(http.StatusNoContent)
 	return
 }
