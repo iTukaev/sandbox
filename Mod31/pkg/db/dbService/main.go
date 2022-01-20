@@ -6,10 +6,10 @@ import (
 )
 
 type User struct {
-	ID primitive.ObjectID `json:"_id,omitempty"`
-	Name string `json:"name"`
-	Age int `json:"age"`
-	Friends []string `json:"friends,omitempty"`
+	ID primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Name string `json:"name" bson:"name"`
+	Age int `json:"age" bson:"age"`
+	Friends []string `json:"friends" bson:"friends"`
 }
 
 type Service struct {

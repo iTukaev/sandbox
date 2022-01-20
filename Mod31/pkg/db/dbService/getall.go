@@ -3,8 +3,10 @@ package dbService
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
 	"time"
 )
 
@@ -15,9 +17,17 @@ func (s *Service) GetAll() ([]byte, error) {
 		return nil, err
 	}
 
-	var builder bytes.Buffer
+	var buffer bytes.Buffer
+	u := new(User)
 	for documents.Next(ctx) {
-		builder.WriteString(documents.Current.String())
+		if err = documents.Decode(u); err != nil {
+			log.Printf("document %d decoding error %v", documents.ID(), err)
+		}
+		res, err := json.Marshal(u)
+		if err != nil {
+			log.Printf("document %d marshalling error %v", documents.ID(), err)
+		}
+		buffer.Write(res)
 	}
-	return builder.Bytes(), nil
+	return buffer.Bytes(), nil
 }

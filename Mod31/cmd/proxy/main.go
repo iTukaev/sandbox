@@ -58,7 +58,6 @@ func start(ctx context.Context, cfg Config) {
 	})
 
 	<-ctx.Done()
-	time.Sleep(3 * time.Second)
 	if err := server.Close(); err != nil {
 		log.Printf("Server closing error: %v", err)
 	}

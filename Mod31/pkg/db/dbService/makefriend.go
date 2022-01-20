@@ -14,7 +14,7 @@ func (s *Service) MakeFriend(TargetID string, SourceID string) error {
 	if err != nil {
 		return err
 	}
-	sourceObjID, err := primitive.ObjectIDFromHex(TargetID)
+	sourceObjID, err := primitive.ObjectIDFromHex(SourceID)
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (s *Service) MakeFriend(TargetID string, SourceID string) error {
 	}
 
 	sourceUpdate := bson.D{{"$addToSet", bson.D{{"friends", TargetID}}}}
-	if err = s.coll.FindOneAndUpdate(ctx, targetFilter, sourceUpdate).Err(); err != nil {
+	if err = s.coll.FindOneAndUpdate(ctx, sourceFilter, sourceUpdate).Err(); err != nil {
 		log.Println(err)
 		return err
 	}

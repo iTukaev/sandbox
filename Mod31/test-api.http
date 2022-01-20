@@ -4,8 +4,8 @@ POST http://127.0.0.1:8000/create
 Content-Type: application/json
 
 {
-  "name": "Sara",
-  "age": 32
+  "name": "Lara",
+  "age": 19
 }
 
 
@@ -15,8 +15,8 @@ POST http://127.0.0.1:8000/make_friends
 Content-Type: application/json
 
 {
-  "target_id": 3,
-  "source_id": 2
+  "target_id": "619c85ed6347af1b7c751770",
+  "source_id": "619c756fef850755cc60b1a2"
 }
 
 
@@ -26,19 +26,19 @@ DELETE http://127.0.0.1:8000/user
 Content-Type: application/json
 
 {
-  "target_id": 1
+  "target_id": "619c758def850755cc60b1a3"
 }
 
 
 ### get all friends of user
 
-GET http://127.0.0.1:8000/friends/3
+GET http://127.0.0.1:8000/friends/619c756fef850755cc60b1a2
 Content-Type: application/json
 
 
 ### update age of user
 
-PUT http://127.0.0.1:8000/4
+PUT http://127.0.0.1:8000/61989b2ed6309b314d4e3248
 Content-Type: application/json
 
 {
